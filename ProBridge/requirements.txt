@@ -1,0 +1,3 @@
+# Python side of ProBridge. Run this inside ProBridge/.venv, not ArcGIS Pro's
+# arcgispro-py3 environment.
+mcp<2

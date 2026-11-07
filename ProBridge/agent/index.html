@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ProBridge Agent</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --line:#e3e6ec; --text:#1f2329;
+    --muted:#8a9099; --accent:#2f6fed; --ok:#18a058; --err:#d03050;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    font:13px/1.55 "Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    background:var(--bg); color:var(--text); overflow:hidden;
+  }
+  .app{display:flex;flex-direction:column;height:100%;}
+
+  header{
+    display:flex;align-items:center;gap:8px;
+    padding:9px 12px;background:var(--panel);border-bottom:1px solid var(--line);
+    flex:0 0 auto;
+  }
+  header .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+  header .dot.on{background:var(--ok);}
+  header .dot.off{background:var(--err);}
+  header h1{font-size:13px;font-weight:600;margin:0;}
+  header .state{font-size:11px;color:var(--muted);margin-left:auto;}
+
+  main{display:flex;flex:1;min-height:0;}
+  .chat{display:flex;flex-direction:column;flex:1;min-width:0;}
+  .log{
+    width:250px;flex:0 0 250px;border-left:1px solid var(--line);
+    background:var(--panel);display:flex;flex-direction:column;min-height:0;
+  }
+  @media (max-width:720px){
+    main{flex-direction:column;}
+    .log{width:auto;flex:0 0 40%;border-left:none;border-top:1px solid var(--line);}
+  }
+
+  #messages{flex:1;overflow-y:auto;padding:12px;}
+  .msg{margin-bottom:10px;display:flex;gap:8px;}
+  .msg .who{
+    flex:0 0 26px;height:26px;border-radius:6px;font-size:11px;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .msg.user .who{background:#5b6472;}
+  .msg.bot .who{background:var(--accent);}
+  .bubble{
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:7px 10px;white-space:pre-wrap;word-break:break-word;max-width:100%;
+  }
+  .msg.user .bubble{background:#eef3ff;border-color:#d6e2ff;}
+
+  .composer{
+    border-top:1px solid var(--line);background:var(--panel);
+    padding:9px 10px;display:flex;gap:8px;align-items:flex-end;flex:0 0 auto;
+  }
+  textarea{
+    flex:1;resize:none;height:36px;max-height:110px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:8px;font:inherit;outline:none;
+    background:#fbfcfe;
+  }
+  textarea:focus{border-color:var(--accent);background:#fff;}
+  button{
+    height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--accent);
+    color:#fff;font:inherit;cursor:pointer;
+  }
+  button:disabled{opacity:.5;cursor:default;}
+  .chips{display:flex;gap:6px;padding:0 10px 8px;flex-wrap:wrap;background:var(--panel);}
+  .chip{
+    font-size:11px;padding:3px 9px;border:1px solid var(--line);border-radius:999px;
+    background:#fff;cursor:pointer;color:#4b5563;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--accent);}
+
+  .log h2{
+    font-size:11px;font-weight:600;color:var(--muted);margin:0;
+    padding:9px 12px;border-bottom:1px solid var(--line);letter-spacing:.04em;
+  }
+  #steps{flex:1;overflow-y:auto;padding:8px 12px;font-size:12px;}
+  .step{display:flex;gap:7px;padding:3px 0;align-items:flex-start;}
+  .step .mark{
+    flex:0 0 14px;text-align:center;font-size:11px;line-height:18px;
+  }
+  .step.ok .mark{color:var(--ok);}
+  .step.bad .mark{color:var(--err);}
+  .step .label{color:var(--text);}
+  .step .detail{color:var(--muted);font-size:11px;word-break:break-all;}
+  .empty{color:var(--muted);font-size:12px;padding:6px 0;}
+
+  #preview{border-top:1px solid var(--line);padding:8px;display:none;}
+  #preview img{width:100%;border:1px solid var(--line);border-radius:6px;display:block;}
+  #preview .cap{font-size:11px;color:var(--muted);margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="dot" id="dot"></span>
+    <h1>ProBridge Agent</h1>
+    <span class="state" id="state">连接中…</span>
+  </header>
+
+  <main>
+    <section class="chat">
+      <div id="messages">
+        <div class="msg bot">
+          <div class="who">AI</div>
+          <div class="bubble">说一句话，我来操控 ArcGIS Pro。
+
+比如「画北京研究区图」，我会建三张地图、加载 DEM 和土地利用、套上 A4 版式，最后导出。</div>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip" data-q="画北京研究区图">画北京研究区图</span>
+        <span class="chip" data-q="只看高程">只看高程</span>
+        <span class="chip" data-q="只看土地利用">只看土地利用</span>
+        <span class="chip" data-q="列出图层">列出图层</span>
+        <span class="chip" data-q="清空图层">清空图层</span>
+      </div>
+      <div class="composer">
+        <textarea id="input" placeholder="例如：画一张北京的研究区图，带高程和土地利用"></textarea>
+        <button id="send">发送</button>
+      </div>
+    </section>
+
+    <aside class="log">
+      <h2>执行过程</h2>
+      <div id="steps"><div class="empty">还没有执行记录</div></div>
+      <div id="preview">
+        <img id="preview-img" alt="">
+        <div class="cap">出图结果</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const messages = $('#messages');
+const stepsBox = $('#steps');
+const input = $('#input');
+const send = $('#send');
+
+function bubble(who, text){
+  const el = document.createElement('div');
+  el.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+  el.innerHTML = `<div class="who">${who === 'user' ? '我' : 'AI'}</div><div class="bubble"></div>`;
+  el.querySelector('.bubble').textContent = text;
+  messages.appendChild(el);
+  messages.scrollTop = messages.scrollHeight;
+  return el;
+}
+
+function clearSteps(){
+  stepsBox.innerHTML = '';
+}
+
+function addStep(s){
+  const el = document.createElement('div');
+  el.className = 'step ' + (s.ok ? 'ok' : 'bad');
+  el.innerHTML = `<div class="mark">${s.ok ? '✓' : '✕'}</div>
+    <div><div class="label"></div><div class="detail"></div></div>`;
+  el.querySelector('.label').textContent = s.label;
+  el.querySelector('.detail').textContent = s.detail || '';
+  stepsBox.appendChild(el);
+  stepsBox.scrollTop = stepsBox.scrollHeight;
+}
+
+async function refreshState(){
+  try{
+    const r = await fetch('/api/state');
+    const j = await r.json();
+    const dot = $('#dot'), state = $('#state');
+    if (j.ok && j.data && j.data.project){
+      dot.className = 'dot on';
+      state.textContent = j.data.project;
+    }else{
+      dot.className = 'dot off';
+      state.textContent = j.ok ? '未打开工程' : 'Pro 未连接';
+    }
+  }catch(e){
+    $('#dot').className = 'dot off';
+    $('#state').textContent = '服务未启动';
+  }
+}
+
+async function ask(text){
+  if(!text.trim()) return;
+  bubble('user', text);
+  input.value = '';
+  send.disabled = true;
+  clearSteps();
+  $('#preview').style.display = 'none';
+
+  const pending = bubble('bot', '正在执行…');
+
+  try{
+    const r = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message:text})
+    });
+    const j = await r.json();
+
+    pending.querySelector('.bubble').textContent = j.reply || '(无回复)';
+    (j.steps || []).forEach((s, i) => setTimeout(() => addStep(s), i * 90));
+
+    if (j.image){
+      setTimeout(() => {
+        $('#preview-img').src = j.image + '?t=' + Date.now();
+        $('#preview').style.display = 'block';
+      }, (j.steps || []).length * 90 + 120);
+    }
+  }catch(e){
+    pending.querySelector('.bubble').textContent = '连不上本地服务：' + e.message;
+  }finally{
+    send.disabled = false;
+    refreshState();
+  }
+}
+
+send.addEventListener('click', () => ask(input.value));
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); ask(input.value); }
+});
+document.querySelectorAll('.chip').forEach(c =>
+  c.addEventListener('click', () => ask(c.dataset.q)));
+
+refreshState();
+setInterval(refreshState, 5000);
+</script>
+</body>
+</html>

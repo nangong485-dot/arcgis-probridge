@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArcGIS defaultAssembly="ProBridge.dll" defaultNamespace="ProBridge"
+       xmlns="http://schemas.esri.com/DADF/Registry"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://schemas.esri.com/DADF/Registry http://schemas.esri.com/DADF/Registry/ArcGIS.xsd">
+
+  <AddInInfo id="{8b1d4e2a-6f3c-4a19-9d7e-2c5b8f0a1e34}" version="1.0" desktopVersion="3.5">
+    <Name>ProBridge</Name>
+    <Description>Local JSON bridge that lets an external Python process drive the running ArcGIS Pro session.</Description>
+    <Image>Images\AddInDesktop32.png</Image>
+    <Author>ProBridge</Author>
+    <Company>local</Company>
+    <Date>2026-10-19</Date>
+    <Targets>
+      <Target name="Desktop" version="3.5" />
+    </Targets>
+  </AddInInfo>
+
+  <modules>
+    <insertModule id="ProBridge_Module" className="ProBridgeModule" autoLoad="true" caption="ProBridge" />
+  </modules>
+
+  <dockPanes>
+    <dockPane id="ProBridge_AgentPane" caption="ProBridge Agent" className="AgentPaneViewModel"
+              dock="right" autoHide="false">
+      <content className="AgentPaneView" />
+    </dockPane>
+  </dockPanes>
+
+  <groups>
+    <group id="ProBridge_Group" caption="ProBridge" appearsOnAddInTab="true">
+      <button id="ProBridge_ShowAgent" caption="AI 制图" className="ShowAgentButton"
+              loadOnClick="true" smallImage="Images\AddInDesktop32.png"
+              largeImage="Images\AddInDesktop32.png" />
+    </group>
+  </groups>
+
+</ArcGIS>

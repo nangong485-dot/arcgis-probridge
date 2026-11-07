@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Local-only agent and IDE state
+.workbuddy-ai/
+.cursor/
+.vscode/
+.idea/
+
+# .NET build output
+ProBridge/server/bin/
+ProBridge/server/obj/
+
+# Exported figures and job scratch files
+ProBridge/out/
+
+# Local scratch datasets and scripts from other workspaces
+tj/
+ProBridge/scripts/compose_changsha.py
+ProBridge/scripts/finish_analysis.py
+
+# Study-area data is downloaded/generated locally and is not redistributed.
+ProBridge/data/bj/*
+!ProBridge/data/bj/README.md
+ProBridge/data/**/*.tif.xml
+ProBridge/data/**/*.tif.aux.xml
+
+# ArcGIS scratch/index caches
+ProBridge/data/smoke/Index/
+ProBridge/data/bj/Index/
+ProBridge/data/smoke/ImportLog/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Sandbox ACL repair records (backups, restore scripts, reports)
+.acl-recovery/
+
+# ArcGIS 文件锁
+*.sr.lock
